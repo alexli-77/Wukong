@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class WukongLaunchers {
     private static final Logger LOGGER = CustomLogger.log(WukongLaunchers.class.getName());
     private static String projectName;
-    private static int numberOfNestedInvocationsOnFieldsOrParameters = 0;
+    private static Set<String> JavaApiSet = new HashSet<>();
 
 //    public void setReportGeneration(boolean generateReport) {
 //        MockableSelector.generateReport = generateReport;
@@ -88,6 +88,7 @@ public class WukongLaunchers {
                 if (deduplicateData.isEmpty() || !deduplicateData.contains(apiName)) {
                     //store contents into a String
                     deduplicateData.add(apiName);
+                    JavaApiSet.add(apiName);
 //                    System.out.println("elements name：" + apiName);
                     count++;
                 }
@@ -105,6 +106,10 @@ public class WukongLaunchers {
         for (CtMethod<?> candidateMethod : candidateMethods) {
             candidateMethod.putMetadata("pankti-target", true);
         }
+    }
+
+    public Set<String> getJavaApiSet() {
+        return JavaApiSet;
     }
 
 //    public void createCSVFile(Map<CtMethod<?>, Map<String, Boolean>> allMethodTags) throws IOException {

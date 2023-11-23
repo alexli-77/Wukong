@@ -130,7 +130,8 @@ public class WukongRunner  implements Callable<Integer> {
 
         LOGGER.info(String.format("the number of methods have Java API %s",
                 map.size()));
-
+        LOGGER.info(String.format("the number of Invoked Java API %s",
+                wukongLaunchers.getJavaApiSet().size()));
 //        Instant start = Instant.now();
 //        // Apply processor to model
 //        Set<CtMethod<?>> candidateMethods =
