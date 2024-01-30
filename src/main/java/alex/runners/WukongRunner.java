@@ -1,15 +1,14 @@
 package alex.runners;
 
 import alex.launchers.WukongLaunchers;
+import alex.utils.CsvFileUtil;
 import alex.utils.FileUtil;
 import picocli.CommandLine;
 
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 import alex.utils.CustomLogger;
@@ -86,6 +85,7 @@ public class WukongRunner  implements Callable<Integer> {
 
         final String path = this.projectPath.toString();
         final String name = this.projectPath.getFileName().toString();
+        final String project = this.projectPath.getName(6).toString();
 
         WukongLaunchers wukongLaunchers = new WukongLaunchers();
 
@@ -122,16 +122,28 @@ public class WukongRunner  implements Callable<Integer> {
 
         Map<String, Integer> map = wukongLaunchers.countJavaAPIPerMethod(model,whitelistSet,includeVoidMethods);
         System.out.println("includeVoidMethods : " + includeVoidMethods);
-//        for(String key : map.keySet()) {
-//            // Find elements in each method
-//            LOGGER.info(String.format("method : %s， elements count %s",
-//                    key, map.get(key)));
-//        }
 
-        LOGGER.info(String.format("the number of methods have Java API %s",
+        LOGGER.info(String.format("the number of methods that have Java API %s",
                 map.size()));
-        LOGGER.info(String.format("the number of Invoked Java API %s",
-                wukongLaunchers.getJavaApiSet().size()));
+        LOGGER.info(String.format("the number of Invoked Java APIs %s",
+                wukongLaunchers.getJavaApiCatagoryMap().size()));
+        List<Map.Entry<String, Integer>> list = new ArrayList<>(wukongLaunchers.getJavaApiCatagoryMap().entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        try {
+            CsvFileUtil.createCSVFile(list, project);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+//        for (int i = 10; i >0; i--) {
+//            LOGGER.info(String.format("Java API %s ",
+//                    list.get(i).getKey() + " times: " + list.get(i).getValue()));
+//        }
 //        Instant start = Instant.now();
 //        // Apply processor to model
 //        Set<CtMethod<?>> candidateMethods =

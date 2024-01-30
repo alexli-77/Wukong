@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spoon.core.version>8.0.0</spoon.core.version>
+        <spoon.core.version>10.3.0</spoon.core.version>
         <maven.build.helper.plugin.version>3.0.0</maven.build.helper.plugin.version>
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
         <maven.compiler.plugin.release>11</maven.compiler.plugin.release>

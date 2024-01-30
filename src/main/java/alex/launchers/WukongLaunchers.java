@@ -17,9 +17,10 @@ import java.util.logging.Logger;
 
 public class WukongLaunchers {
     private static final Logger LOGGER = CustomLogger.log(WukongLaunchers.class.getName());
-    private static String projectName;
     private static Set<String> JavaApiSet = new HashSet<>();
+    private static Map<String,Integer> JavaApiCatagoryMap = new HashMap<>();
 
+    private static String projectName;
 //    public void setReportGeneration(boolean generateReport) {
 //        MockableSelector.generateReport = generateReport;
 //    }
@@ -68,8 +69,7 @@ public class WukongLaunchers {
         MethodsProcessor methodsProcessor = new MethodsProcessor(includeVoidMethods);
         model.processWith(methodsProcessor);
         Set<CtMethod<?>> candidateMethods = methodsProcessor.getCandidateMethods();
-        LOGGER.info(String.format("Number of extracted methods: %s",
-                candidateMethods.size()));
+        LOGGER.info(String.format("Number of extracted methods: %s", candidateMethods.size()));
         int count;
         for (CtMethod<?> m :candidateMethods){
             count = 0;
@@ -84,13 +84,17 @@ public class WukongLaunchers {
                     continue;
                 }
                 String apiName = se.toString().split("[\\(\\s\\<]")[0];
-                //deduplicate
+                //filter deduplicate
                 if (deduplicateData.isEmpty() || !deduplicateData.contains(apiName)) {
-                    //store contents into a String
-                    deduplicateData.add(apiName);
-                    JavaApiSet.add(apiName);
-//                    System.out.println("elements name：" + apiName);
                     count++;
+                }
+                //filter
+                if (!JavaApiCatagoryMap.containsKey(apiName)) {
+                    //store contents into a String
+                    JavaApiCatagoryMap.put(apiName,1);
+                    //System.out.println("elements name：" + apiName);
+                } else {
+                    JavaApiCatagoryMap.replace(apiName,JavaApiCatagoryMap.get(apiName)+1);
                 }
             }
             if(count != 0) {
@@ -110,6 +114,10 @@ public class WukongLaunchers {
 
     public Set<String> getJavaApiSet() {
         return JavaApiSet;
+    }
+
+    public Map<String,Integer> getJavaApiCatagoryMap() {
+        return JavaApiCatagoryMap;
     }
 
 //    public void createCSVFile(Map<CtMethod<?>, Map<String, Boolean>> allMethodTags) throws IOException {
