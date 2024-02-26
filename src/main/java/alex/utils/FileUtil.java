@@ -15,10 +15,28 @@ public class FileUtil {
             file = new File(URLDecoder.decode(filename, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
     }
 
+    public boolean write(String data) {
+        try {
+            //if file doesnt exists, then create it
+            if(!file.exists()){
+                file.createNewFile();
+            }
+            FileWriter fileWritter = new FileWriter(file.getName(),true);
+            BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+            bufferWritter.write(data);
+            bufferWritter.newLine();
+            bufferWritter.close();
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        return true;
+    }
     public void read(){
         //read file
         InputStreamReader inputStreamReader = null;

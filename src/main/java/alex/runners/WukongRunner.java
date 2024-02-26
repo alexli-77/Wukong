@@ -3,6 +3,7 @@ package alex.runners;
 import alex.launchers.WukongLaunchers;
 import alex.utils.CsvFileUtil;
 import alex.utils.FileUtil;
+import alex.utils.JsonUtil;
 import picocli.CommandLine;
 
 import java.nio.file.Path;
@@ -53,6 +54,11 @@ public class WukongRunner  implements Callable<Integer> {
             usageHelp = true)
     private boolean usageHelpRequested;
 
+    @CommandLine.Option(
+            names = {"--index"},
+            description = "generate Invoked Library API statistics JSON")
+    private String indexJson;
+
     public WukongRunner() {
     }
 
@@ -68,12 +74,14 @@ public class WukongRunner  implements Callable<Integer> {
     public WukongRunner(final Path projectPath,
                       final boolean includeVoidMethods,
                       final boolean sourceDirectory,
+                      final String indexJson,
                       final boolean help,
                       final boolean generateReport) {
         this.projectPath = projectPath;
         this.includeVoidMethods = includeVoidMethods;
         this.sourceDirectory = sourceDirectory;
         this.usageHelpRequested = help;
+        this.indexJson = indexJson;
         this.generateReport = generateReport;
     }
 
@@ -85,12 +93,9 @@ public class WukongRunner  implements Callable<Integer> {
 
         final String path = this.projectPath.toString();
         final String name = this.projectPath.getFileName().toString();
-        final String project = this.projectPath.getName(6).toString();
+        final String project = this.indexJson;
 
         WukongLaunchers wukongLaunchers = new WukongLaunchers();
-
-//        panktiLauncher.setReportGeneration(generateReport);
-
         // Process project
         LOGGER.info(String.format("Processing project: %s", name));
         Launcher launcher;
@@ -127,15 +132,27 @@ public class WukongRunner  implements Callable<Integer> {
                 map.size()));
         LOGGER.info(String.format("the number of Invoked Java APIs %s",
                 wukongLaunchers.getJavaApiCatagoryMap().size()));
-        List<Map.Entry<String, Integer>> list = new ArrayList<>(wukongLaunchers.getJavaApiCatagoryMap().entrySet());
-        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
-            @Override
-            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-                return o2.getValue().compareTo(o1.getValue());
+        // get Java Api json file
+        if (!indexJson.isEmpty()){
+            String jsonFileName = "./Java API documents-" + indexJson + ".json";
+            wukongLaunchers.getDocumentsInJson(indexJson,jsonFileName);
+        }
+        // get Annotations
+        Map<String,List> javaAnnotationsMap = wukongLaunchers.getJavaAnnotationsMap();
+        FileUtil javaAnnotationsFileUtil = new FileUtil("javaAnnotationsMap.txt");
+
+        for (String key:javaAnnotationsMap.keySet()){
+            if (key.contains("@org.junit.Test")) {
+                for (Object document : javaAnnotationsMap.get(key)){
+                    if (!javaAnnotationsFileUtil.write(document.toString())){
+                        break;
+                    };
+                }
             }
-        });
+        }
+
         try {
-            CsvFileUtil.createCSVFile(list, project);
+            CsvFileUtil.createCSVFile(wukongLaunchers.getSortedApiCatagoryMap(), project);
         } catch (Exception e) {
             e.printStackTrace();
         }

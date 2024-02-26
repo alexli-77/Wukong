@@ -3,6 +3,8 @@ package alex.launchers;
 import alex.processors.CandidateTrigger;
 import alex.processors.MethodsProcessor;
 import alex.utils.CustomLogger;
+import alex.utils.FileUtil;
+import alex.utils.JsonUtil;
 import spoon.JarLauncher;
 import spoon.Launcher;
 import spoon.MavenLauncher;
@@ -11,7 +13,6 @@ import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -19,6 +20,7 @@ public class WukongLaunchers {
     private static final Logger LOGGER = CustomLogger.log(WukongLaunchers.class.getName());
     private static Set<String> JavaApiSet = new HashSet<>();
     private static Map<String,Integer> JavaApiCatagoryMap = new HashMap<>();
+    private static Map<String,List> JavaApiAnnotationsMap = new HashMap<>();
 
     private static String projectName;
 //    public void setReportGeneration(boolean generateReport) {
@@ -73,7 +75,13 @@ public class WukongLaunchers {
         int count;
         for (CtMethod<?> m :candidateMethods){
             count = 0;
-//            System.out.println("method name++++ ：" + m.getSimpleName());
+            if (!m.getAnnotations().isEmpty()) {
+                if (!(JavaApiAnnotationsMap.get(m.getAnnotations().get(0).toString()) == null)) {
+                    JavaApiAnnotationsMap.get(m.getAnnotations().get(0).toString()).add(m.getSimpleName());
+                } else {
+                    JavaApiAnnotationsMap.put(m.getAnnotations().get(0).toString(),new ArrayList(){{add(m.getSimpleName());}});
+                }
+            }
             for(CtElement se : m.getElements(null)) {
                 //filtering by whitelist
                 if(whitelist.contains(se.toString())){
@@ -106,6 +114,43 @@ public class WukongLaunchers {
         return map;
     }
 
+    /**
+     * get sorted Api catagory map
+     * @return
+     */
+    public List<Map.Entry<String, Integer>> getSortedApiCatagoryMap(){
+
+        List<Map.Entry<String, Integer>> list = new ArrayList<>(JavaApiCatagoryMap.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        return list;
+    }
+    /**
+     * get invoked Library Apis in Json format
+     * @param appName
+     */
+    public void getDocumentsInJson(String appName, String filename){
+        List<String> documents = new ArrayList<>();
+        Boolean writerflag = false;
+        for (String key:JavaApiCatagoryMap.keySet()){
+            Map<String,String> map = new HashMap<String,String>(){{
+               put("apiName",key);
+               put("app",appName);
+            }};
+            documents.add(JsonUtil.toJsonString(map));
+        }
+        FileUtil fileUtil = new FileUtil(filename);
+        for (String document : documents){
+            if (!fileUtil.write(document)){
+                break;
+            };
+        }
+        System.out.println("---------File writer finished-----------");
+    }
     public void addMetaDataToCandidateMethods(Set<CtMethod<?>> candidateMethods) {
         for (CtMethod<?> candidateMethod : candidateMethods) {
             candidateMethod.putMetadata("pankti-target", true);
@@ -114,6 +159,10 @@ public class WukongLaunchers {
 
     public Set<String> getJavaApiSet() {
         return JavaApiSet;
+    }
+
+    public Map<String, List> getJavaAnnotationsMap() {
+        return JavaApiAnnotationsMap;
     }
 
     public Map<String,Integer> getJavaApiCatagoryMap() {
