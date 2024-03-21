@@ -64,7 +64,7 @@ public class WukongLaunchers {
         return numberOfMethodsInProject;
     }
 
-    public Map<String,Integer> countJavaAPIPerMethod(final CtModel model, Set<String> whitelist, final boolean includeVoidMethods) {
+    public Map<String,Integer> countJavaAPIPerMethod(final CtModel model, Set<String> whitelist, final boolean includeVoidMethods, final String libName) {
         Map<String, Integer> map = new HashMap<>();
         Set<String> deduplicateData = new HashSet<>();
 
@@ -88,7 +88,10 @@ public class WukongLaunchers {
                     continue;
                 }
                 //filtering by keywords
-                if (!se.toString().startsWith("java.") && !se.toString().startsWith("jdk.")) {
+//                if (!se.toString().startsWith("java.") && !se.toString().startsWith("jdk.")) {
+//                    continue;
+//                }
+                if (!se.toString().startsWith(libName)) {
                     continue;
                 }
                 String apiName = se.toString().split("[\\(\\s\\<]")[0];

@@ -59,6 +59,13 @@ public class WukongRunner  implements Callable<Integer> {
             description = "generate Invoked Library API statistics JSON")
     private String indexJson;
 
+
+    @CommandLine.Option(
+            names = {"--filter"},
+            defaultValue = "false",
+            description = "filter the target Java Library")
+    private String libName;
+
     public WukongRunner() {
     }
 
@@ -125,7 +132,7 @@ public class WukongRunner  implements Callable<Integer> {
         FileUtil fileUtil = new FileUtil("/Users/files/code/github/Wukong/src/main/resources/whitelist");
         Set<String> whitelistSet = fileUtil.readFileAsSet();
 
-        Map<String, Integer> map = wukongLaunchers.countJavaAPIPerMethod(model,whitelistSet,includeVoidMethods);
+        Map<String, Integer> map = wukongLaunchers.countJavaAPIPerMethod(model,whitelistSet,includeVoidMethods,libName);
         System.out.println("includeVoidMethods : " + includeVoidMethods);
 
         LOGGER.info(String.format("the number of methods that have Java API %s",
@@ -133,7 +140,7 @@ public class WukongRunner  implements Callable<Integer> {
         LOGGER.info(String.format("the number of Invoked Java APIs %s",
                 wukongLaunchers.getJavaApiCatagoryMap().size()));
         // get Java Api json file
-        if (!indexJson.isEmpty()){
+        if (indexJson != null && !indexJson.isEmpty()){
             String jsonFileName = "./Java API documents-" + indexJson + ".json";
             wukongLaunchers.getDocumentsInJson(indexJson,jsonFileName);
         }
